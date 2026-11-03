@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Editar nota | ESC Contábil</title>
+    <style>
+        :root { --navy:#0b2c45; --blue:#123b5b; --gold:#d5a12b; --ink:#173247; --muted:#667786; --line:#dfe7ec; --paper:#f4f7f9; }
+        * { box-sizing:border-box; }
+        body { margin:0; background:var(--paper); color:var(--ink); font:15px/1.5 Inter,Arial,sans-serif; }
+        main { width:min(980px,100%); margin:0 auto; padding:34px 22px; }
+        .panel { padding:22px; border:1px solid var(--line); border-radius:13px; background:#fff; box-shadow:0 6px 24px #0b2c450c; }
+        h1 { margin:0; color:var(--navy); font-size:25px; }
+        .sub { margin:4px 0 20px; color:var(--muted); }
+        .grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:13px; margin:14px 0 22px; }
+        label { display:grid; gap:5px; color:var(--ink); font-size:12px; font-weight:700; }
+        input { width:100%; min-height:40px; padding:9px 11px; border:1px solid var(--line); border-radius:8px; color:var(--ink); font:inherit; font-size:13px; font-weight:400; }
+        input:focus { border-color:#c69a32; outline:none; box-shadow:0 0 0 3px #d5a12b24; }
+        h2 { margin:0; color:var(--navy); font-size:16px; }
+        .hint { margin:3px 0 12px; color:var(--muted); font-size:12px; }
+        .rows { display:grid; gap:10px; margin-bottom:16px; }
+        .row { display:grid; grid-template-columns:.7fr 1fr 1fr 1fr 1fr auto; align-items:end; gap:9px; padding:12px; border:1px solid var(--line); border-radius:9px; background:#fbfcfd; }
+        .row label { color:var(--muted); font-size:11px; }
+        .row input { min-width:0; min-height:38px; padding:8px; font-size:12px; }
+        button,.button { display:inline-flex; min-height:40px; align-items:center; justify-content:center; gap:7px; padding:9px 14px; border:1px solid var(--blue); border-radius:8px; background:var(--blue); color:#fff; cursor:pointer; font:inherit; font-size:13px; font-weight:700; text-decoration:none; }
+        .secondary { border-color:var(--line); background:#fff; color:var(--blue); }
+        .remove { min-height:38px; padding:7px 9px; border-color:var(--line); background:#fff; color:#a3313c; }
+        .actions { display:flex; flex-wrap:wrap; gap:9px; margin-top:20px; }
+        @media(max-width:700px) { .row { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+        @media(max-width:520px) { main { padding:18px 12px; } .panel { padding:16px; } .grid { grid-template-columns:1fr; } }
+    </style>
+</head>
+<body>
+<main>
+    <section class="panel">
+        <h1>Editar nota fiscal</h1>
+        <p class="sub">As alterações valem para notas importadas por XML e notas cadastradas manualmente. O XML original, se houver, permanece guardado para consulta.</p>
+        <form method="post" th:action="@{'/invoices/' + ${invoice.id} + '/edit'}">
+            <div class="grid">
+                <label>Número da nota<input name="number" required maxlength="80" th:value="${invoice.number}"></label>
+                <label>Modelo<input name="model" required maxlength="20" th:value="${invoice.model}"></label>
+                <label>Nome do cliente / empresa<input name="customer" required maxlength="255" th:value="${invoice.customer}"></label>
+                <label>CNPJ ou CPF do cliente<input name="customerDocument" required maxlength="30" inputmode="numeric" th:value="${invoice.customerDocument}"></label>
+                <label>Data de emissão<input name="issueDate" type="date" required th:value="${invoice.issueDate}"></label>
+            </div>
+            <h2>Parcelas</h2>
+            <p class="hint">Edite valores e vencimentos, atualize o recebido, ou adicione/remova parcelas. O recebimento não pode superar o valor da parcela.</p>
+            <div class="rows" id="installment-rows">
+                <div class="row" th:each="inst : ${invoice.installments}">
+                    <label>Nº<input name="installmentNumbers" type="number" min="1" required th:value="${inst.installmentNumber}"></label>
+                    <label>Valor da parcela<input name="amounts" type="number" min="0.01" step="0.01" required th:value="${inst.amount}"></label>
+                    <label>Vencimento<input name="dueDates" type="date" required th:value="${inst.dueDate}"></label>
+                    <label>Já recebido<input name="paidAmounts" type="number" min="0" step="0.01" th:value="${inst.paidAmount}"></label>
+                    <label>Data recebida<input name="paidDates" type="date" th:value="${inst.paidDate}"></label>
+                    <button class="remove" type="button">Remover</button>
+                </div>
+            </div>
+            <div class="actions">
+                <button class="secondary" type="button" id="add-row">+ Adicionar parcela</button>
+                <button type="submit">Salvar alterações</button>
+                <a class="button secondary" href="/?view=notas">Cancelar</a>
+            </div>
+        </form>
+    </section>
+</main>
+<script>
+    const rows = document.querySelector("#installment-rows");
+    function refreshRows() {
+      const all = [...rows.querySelectorAll(".row")];
+      all.forEach(row => {
+        row.querySelector(".remove").disabled = all.length === 1;
+      });
+    }
+    rows.addEventListener("click", event => {
+      if (event.target.matches(".remove") && rows.children.length > 1) {
+        event.target.closest(".row").remove();
+        refreshRows();
+      }
+    });
+    document.querySelector("#add-row").addEventListener("click", () => {
+      const row = rows.lastElementChild.cloneNode(true);
+      row.querySelectorAll("input").forEach(input => { input.value = ""; input.removeAttribute("data-changed"); });
+      row.querySelector('[name="installmentNumbers"]').value = rows.children.length + 1;
+      rows.appendChild(row);
+      refreshRows();
+    });
+    rows.addEventListener("change", event => {
+      if (event.target.name === "paidAmounts" && Number(event.target.value) > 0) {
+        const date = event.target.closest(".row").querySelector('[name="paidDates"]');
+        if (!date.value) date.value = new Date().toISOString().slice(0, 10);
+      }
+    });
+    refreshRows();
+</script>
+</body>
+</html>

@@ -1,0 +1,590 @@
+<!doctype html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Recebíveis | JSB</title>
+    <style>
+        :root {
+          --navy: #0b2c45;
+          --blue: #123b5b;
+          --blue-soft: #eaf1f6;
+          --gold: #d5a12b;
+          --gold-soft: #fff6df;
+          --ink: #173247;
+          --muted: #667786;
+          --line: #dfe7ec;
+          --paper: #f4f7f9;
+          --white: #fff;
+          --green: #24734e;
+          --red: #a3313c;
+          --shadow: 0 6px 24px #0b2c450c;
+        }
+
+        * { box-sizing: border-box; }
+        [hidden] { display: none !important; }
+        body {
+          margin: 0;
+          background: var(--paper);
+          color: var(--ink);
+          font: 15px/1.5 Inter, Arial, sans-serif;
+        }
+        button, input, select { font: inherit; }
+
+        .layout { display: grid; grid-template-columns: 254px minmax(0, 1fr); min-height: 100vh; }
+        .sidebar {
+          display: flex;
+          flex-direction: column;
+          min-height: 100vh;
+          padding: 24px 18px 20px;
+          background: var(--navy);
+          color: #f7fafc;
+        }
+        .brand { display: flex; align-items: center; gap: 12px; min-height: 66px; padding: 0 4px; }
+        .brand-logo {
+          display: grid;
+          width: 62px;
+          height: 62px;
+          flex: 0 0 62px;
+          place-items: center;
+          overflow: hidden;
+          border-radius: 14px;
+          background: #fff;
+          box-shadow: 0 3px 12px #020e1a40;
+        }
+        .brand-logo img { display: block; width: 100%; height: 100%; object-fit: contain; }
+        .brand-copy { min-width: 0; }
+        .brand-name { display: block; color: white; font-size: 16px; font-weight: 750; letter-spacing: .01em; }
+        .brand-caption { display: block; margin-top: 2px; color: #bdccd6; font-size: 11px; }
+        .nav-label { margin: 38px 10px 10px; color: #9fb3c1; font-size: 10px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; }
+        .nav { display: grid; gap: 6px; }
+        .nav-button {
+          display: flex;
+          width: 100%;
+          min-height: 46px;
+          align-items: center;
+          gap: 12px;
+          padding: 10px 12px;
+          border: 0;
+          border-radius: 9px;
+          background: transparent;
+          color: #d8e3e9;
+          cursor: pointer;
+          text-align: left;
+          transition: background .16s ease, color .16s ease;
+        }
+        .nav-button:hover { background: #ffffff12; color: #fff; }
+        .nav-button[aria-selected="true"] { background: var(--blue); color: #fff; box-shadow: inset 3px 0 var(--gold); }
+        .nav-icon { width: 20px; height: 20px; flex: 0 0 20px; color: #e1b44f; }
+        .nav-icon svg { display: block; width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.7; }
+        .company-info {
+          display: grid;
+          gap: 5px;
+          margin-top: auto;
+          padding: 16px 8px 0;
+          border-top: 1px solid #ffffff20;
+          color: #c6d3db;
+          font-size: 11px;
+          overflow-wrap: anywhere;
+        }
+        .company-info strong { color: #fff; font-size: 12px; }
+        .company-info .placeholder { color: #e8c56b; }
+        .logout-form { margin-top: 14px; }
+        .logout-button { width: 100%; min-height: 38px; border: 1px solid #ffffff35; border-radius: 8px; background: transparent; color: #e4edf2; cursor: pointer; font: inherit; font-size: 12px; }
+        .logout-button:hover { background: #ffffff12; }
+
+        main { width: 100%; max-width: 1600px; margin: 0 auto; padding: 34px clamp(20px, 4vw, 58px) 26px; }
+        .top { display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; margin-bottom: 24px; }
+        .eyebrow { color: var(--blue); font-size: 11px; font-weight: 750; letter-spacing: .12em; text-transform: uppercase; }
+        h1 { margin: 5px 0 3px; color: var(--navy); font-size: clamp(25px, 2vw, 30px); line-height: 1.2; letter-spacing: -.025em; }
+        .sub { margin: 0; color: var(--muted); }
+        .actions { display: flex; gap: 10px; flex-wrap: wrap; }
+        .btn {
+          display: inline-flex;
+          min-height: 44px;
+          align-items: center;
+          justify-content: center;
+          gap: 9px;
+          padding: 10px 15px;
+          border: 1px solid var(--blue);
+          border-radius: 9px;
+          background: var(--blue);
+          color: #fff;
+          cursor: pointer;
+          font-size: 13px;
+          font-weight: 700;
+          text-decoration: none;
+          transition: background .16s ease, border-color .16s ease, transform .16s ease;
+        }
+        .btn:hover { border-color: var(--navy); background: var(--navy); transform: translateY(-1px); }
+        .btn.secondary { border-color: var(--line); background: #fff; color: var(--blue); }
+        .btn.secondary:hover { border-color: var(--gold); background: var(--gold-soft); }
+        .btn-gold { border-color: var(--gold); background: var(--gold); color: var(--navy); }
+        .btn-gold:hover { border-color: #bd8b1c; background: #bd8b1c; }
+        .btn-icon { width: 17px; height: 17px; flex: 0 0 17px; }
+        .btn-icon svg { display: block; width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.8; }
+
+        .page-view { animation: fade-in .18s ease-out; }
+        @keyframes fade-in { from { opacity: .65; transform: translateY(3px); } to { opacity: 1; transform: translateY(0); } }
+        .cards { display: grid; grid-template-columns: repeat(4, minmax(140px, 1fr)); gap: 14px; margin: 20px 0; }
+        .card, .panel { border: 1px solid var(--line); border-radius: 13px; background: var(--white); box-shadow: var(--shadow); }
+        .card { position: relative; min-height: 126px; padding: 18px 19px; overflow: hidden; }
+        .card::before { position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: var(--gold); content: ""; }
+        .card .label { color: var(--muted); font-size: 12px; }
+        .card strong { display: block; margin-top: 8px; color: var(--navy); font-size: 25px; line-height: 1.15; font-variant-numeric: tabular-nums; }
+        .card .small { margin-top: 6px; color: var(--muted); font-size: 12px; }
+        .panel { margin-bottom: 18px; padding: 20px; }
+        .panel-title { color: var(--navy); font-size: 16px; font-weight: 750; }
+        .panel-sub { margin: 3px 0 16px; color: var(--muted); font-size: 13px; }
+        .quick-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+        .quick-action { display: flex; min-height: 76px; align-items: center; gap: 13px; padding: 14px; border: 1px solid var(--line); border-radius: 10px; background: #fff; color: var(--ink); cursor: pointer; text-align: left; }
+        .quick-action:hover { border-color: #d7b35d; background: #fffdf7; }
+        .quick-icon { display: grid; width: 40px; height: 40px; flex: 0 0 40px; place-items: center; border: 1px solid #e8d39b; border-radius: 10px; background: var(--gold-soft); color: var(--blue); }
+        .quick-icon svg { width: 21px; height: 21px; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.8; }
+        .quick-copy strong { display: block; font-size: 13px; }
+        .quick-copy span { display: block; margin-top: 2px; color: var(--muted); font-size: 12px; }
+        .flash { margin: 12px 0; padding: 12px 14px; border: 1px solid #f0d497; border-radius: 9px; background: #fff5df; color: #674711; }
+
+        .upload { display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 16px; border: 1px dashed #b99a4c; border-radius: 11px; background: #fffaf0; }
+        .upload input { max-width: 390px; margin-top: 10px; color: var(--muted); }
+        .manual-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 13px; margin: 14px 0 20px; }
+        .manual-field { display: grid; gap: 5px; color: var(--ink); font-size: 12px; font-weight: 700; }
+        .manual-field input { width: 100%; min-height: 40px; padding: 9px 11px; border: 1px solid var(--line); border-radius: 8px; background: #fff; color: var(--ink); font-weight: 400; }
+        .manual-field input:focus, .installment-editor input:focus { border-color: #c69a32; outline: none; box-shadow: 0 0 0 3px #d5a12b24; }
+        .installment-list { display: grid; gap: 10px; margin: 12px 0 16px; }
+        .installment-editor { display: grid; grid-template-columns: .7fr 1fr 1fr 1fr 1fr auto; align-items: end; gap: 9px; padding: 12px; border: 1px solid var(--line); border-radius: 9px; background: #fbfcfd; }
+        .installment-editor input { width: 100%; min-width: 0; min-height: 38px; padding: 8px; border: 1px solid var(--line); border-radius: 7px; background: #fff; color: var(--ink); font-size: 12px; }
+        .installment-editor label { display: grid; gap: 5px; color: var(--muted); font-size: 11px; font-weight: 700; }
+        .remove-installment { min-height: 38px; padding: 7px 9px; border: 1px solid var(--line); border-radius: 7px; background: #fff; color: var(--red); cursor: pointer; }
+        .manual-actions { display: flex; flex-wrap: wrap; gap: 9px; }
+        .hint { margin-top: 12px; color: var(--muted); font-size: 12px; }
+        .toolbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin: 14px 0; }
+        .search { display: flex; align-items: center; gap: 8px; }
+        .search input, .search select { min-height: 40px; padding: 9px 12px; border: 1px solid var(--line); border-radius: 8px; outline: none; background: white; color: var(--ink); }
+        .search input { width: min(260px, 100%); }
+        .search input:focus, .search select:focus, .inline-form input:focus { border-color: #c69a32; box-shadow: 0 0 0 3px #d5a12b24; }
+        .table-wrap { overflow: auto; }
+        table { width: 100%; min-width: 1020px; border-collapse: collapse; }
+        th { padding: 12px; border-bottom: 1px solid var(--line); color: var(--muted); font-size: 10px; letter-spacing: .08em; text-align: left; text-transform: uppercase; white-space: nowrap; }
+        td { padding: 13px 12px; border-bottom: 1px solid #edf1f3; font-size: 13px; vertical-align: middle; }
+        tr:last-child td { border-bottom: 0; }
+        .nf { color: var(--navy); font-weight: 750; }
+        .muted { color: var(--muted); font-size: 12px; }
+        .money { color: var(--blue); font-variant-numeric: tabular-nums; font-weight: 700; white-space: nowrap; }
+        .pill { display: inline-block; padding: 5px 9px; border-radius: 20px; font-size: 11px; font-weight: 750; white-space: nowrap; }
+        .PAGO { background: #e0f4e9; color: var(--green); }
+        .VENCIDO { background: #ffe7e7; color: var(--red); }
+        .status-due { background: var(--gold-soft); color: #8a6410; }
+        .inline-form { display: flex; align-items: center; gap: 5px; }
+        .inline-form input { width: 116px; min-height: 34px; padding: 7px; border: 1px solid var(--line); border-radius: 7px; font-size: 12px; }
+        .inline-form button { padding: 8px 9px; border: 0; border-radius: 7px; background: var(--blue-soft); color: var(--blue); cursor: pointer; font-weight: 700; }
+        .empty { padding: 36px; color: var(--muted); text-align: center; }
+        .report-card { display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 18px; border: 1px solid var(--line); border-radius: 10px; background: #fbfcfd; }
+        .report-card strong { display: block; color: var(--navy); font-size: 14px; }
+        .report-card p { margin: 4px 0 0; color: var(--muted); font-size: 12px; }
+        .page-note { margin: 4px 0 16px; color: var(--muted); font-size: 13px; }
+
+        @media (max-width: 1050px) {
+          .layout { grid-template-columns: 220px minmax(0, 1fr); }
+          .cards { grid-template-columns: repeat(2, minmax(140px, 1fr)); }
+          main { padding-right: 22px; padding-left: 22px; }
+        }
+        @media (max-width: 760px) {
+          .layout { display: block; }
+          .sidebar { min-height: 0; padding: 12px 14px 10px; }
+          .brand { min-height: 54px; }
+          .brand-logo { width: 50px; height: 50px; flex-basis: 50px; border-radius: 11px; }
+          .nav-label { display: none; }
+          .nav { display: flex; gap: 5px; margin: 12px -2px 0; overflow-x: auto; padding-bottom: 2px; }
+          .nav-button { width: auto; min-height: 40px; flex: 0 0 auto; gap: 8px; padding: 8px 10px; font-size: 12px; }
+          .nav-button[aria-selected="true"] { box-shadow: inset 0 -3px var(--gold); }
+          .nav-icon { width: 17px; height: 17px; flex-basis: 17px; }
+          .company-info { grid-template-columns: auto 1fr; align-items: center; gap: 3px 12px; margin-top: 10px; padding: 9px 4px 0; font-size: 10px; }
+          .company-info strong { grid-column: 1 / -1; }
+          main { padding: 23px 15px 20px; }
+          .top { display: block; }
+          .actions { margin-top: 14px; }
+        }
+        @media (max-width: 520px) {
+          .cards { gap: 9px; }
+          .card { min-height: 112px; padding: 14px 14px 14px 16px; }
+          .card strong { font-size: 21px; }
+          .panel { padding: 16px; }
+          .quick-actions { grid-template-columns: 1fr; }
+          .manual-grid { grid-template-columns: 1fr; }
+          .upload { display: block; }
+          .upload input { display: block; width: 100%; }
+          .upload .btn { margin-top: 12px; }
+          .toolbar { align-items: stretch; flex-direction: column; }
+          .search { flex-wrap: wrap; }
+          .search input { flex: 1 1 190px; }
+          .search select { flex: 1 1 150px; }
+          .report-card { align-items: flex-start; flex-direction: column; }
+          .inline-form { flex-wrap: wrap; }
+          .installment-editor { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+          .remove-installment { justify-self: start; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; }
+        }
+    </style>
+</head>
+<body th:attr="data-active-view=${activeView}">
+<div class="layout">
+    <aside class="sidebar">
+        <div class="brand">
+            <div class="brand-logo"><img src="/images/logo-esc.png" alt="Logo da ESC"
+                                         onerror="this.parentElement.hidden=true"></div>
+            <div class="brand-copy">
+                <span class="brand-name">ESC Contábil</span>
+                <span class="brand-caption">Automação e gestão contábil</span>
+            </div>
+        </div>
+
+        <div class="nav-label">Navegação</div>
+        <nav class="nav" role="tablist" aria-label="Seções do sistema">
+            <button class="nav-button" type="button" role="tab" aria-selected="true" data-view-target="overview">
+                <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m3.5 10 8.5-7 8.5 7"/><path d="M5.5 9v11h13V9M9 20v-6h6v6"/></svg></span>
+                <span>Página inicial</span>
+            </button>
+            <button class="nav-button" type="button" role="tab" aria-selected="false" data-view-target="notas">
+                <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 4.5h14v15H5z"/><path
+                        d="M8 8h8M8 12h8M8 16h5"/></svg></span>
+                <span>Notas e parcelas</span>
+            </button>
+            <button class="nav-button" type="button" role="tab" aria-selected="false" data-view-target="importacoes">
+                <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 15V4m0 0L8 8m4-4 4 4"/><path
+                        d="M5 14v5h14v-5"/></svg></span>
+                <span>Importações</span>
+            </button>
+            <button class="nav-button" type="button" role="tab" aria-selected="false" data-view-target="relatorios">
+                <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 19.5h16"/><path
+                        d="M6.5 16V10m5 6V5m5 11v-8"/></svg></span>
+                <span>Relatórios</span>
+            </button>
+        </nav>
+
+        <div class="company-info">
+            <span>CNPJ</span><span class="placeholder" th:text="${companyCnpj}">00.000.000/0000-00</span>
+            <span class="placeholder" th:text="${companyName}">Razão social da empresa</span>
+        </div>
+        <form class="logout-form" method="post" th:action="@{/logout}">
+            <button class="logout-button" type="submit">Sair do sistema</button>
+        </form>
+    </aside>
+
+    <main>
+        <header class="top">
+            <div>
+                <div class="eyebrow">Financeiro / Contas a receber</div>
+                <h1 id="page-title">Controle de recebimentos</h1>
+                <p class="sub" id="page-subtitle">Notas, vencimentos e pagamentos em um só lugar.</p>
+            </div>
+            <div class="actions">
+                <a class="btn btn-gold" href="/export.xlsx">
+                    <span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path
+                            d="M12 4v11m0 0 4-4m-4 4-4-4"/><path d="M5 16v4h14v-4"/></svg></span>
+                    Exportar Excel
+                </a>
+            </div>
+        </header>
+
+        <div class="flash" th:if="${message}" th:text="${message}"></div>
+
+        <section class="page-view" id="view-overview" role="tabpanel" aria-label="Visão geral">
+            <div class="cards">
+                <div class="card">
+                    <div class="label">Notas cadastradas</div>
+                    <strong th:text="${invoiceCount}">0</strong>
+                    <div class="small">Documentos cadastrados</div>
+                </div>
+                <div class="card">
+                    <div class="label">Parcelas</div>
+                    <strong th:text="${installmentCount}">0</strong>
+                    <div class="small">Parcelas controladas</div>
+                </div>
+                <div class="card">
+                    <div class="label">Parcelas pagas</div>
+                    <strong th:text="${paidCount}">0</strong>
+                    <div class="small">Pagamento registrado</div>
+                </div>
+                <div class="card">
+                    <div class="label">Saldo em aberto</div>
+                    <strong th:text="${#numbers.formatCurrency(openAmount)}">R$ 0,00</strong>
+                    <div class="small">A vencer ou vencido</div>
+                </div>
+            </div>
+
+            <section class="panel">
+                <div class="panel-title">Acesso rápido</div>
+                <div class="panel-sub">Escolha uma tarefa para continuar o fechamento.</div>
+                <div class="quick-actions">
+                    <button class="quick-action" type="button" data-view-target="importacoes">
+                        <span class="quick-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path
+                                d="M12 15V4m0 0L8 8m4-4 4 4"/><path d="M5 14v5h14v-5"/></svg></span>
+                        <span class="quick-copy"><strong>Importar notas fiscais</strong><span>Adicionar XMLs de NF-e</span></span>
+                    </button>
+                    <button class="quick-action" type="button" data-view-target="importacoes">
+                        <span class="quick-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/><path d="M4 4h16v16H4z"/></svg></span>
+                        <span class="quick-copy"><strong>Cadastrar nota manualmente</strong><span>Registrar nota e parcelas sem XML</span></span>
+                    </button>
+                    <button class="quick-action" type="button" data-scroll-target="invoice-table">
+                        <span class="quick-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 4.5h14v15H5z"/><path
+                                d="M8 8h8M8 12h8M8 16h5"/></svg></span>
+                        <span class="quick-copy"><strong>Conferir parcelas</strong><span>Buscar vencimentos e registrar recebimentos</span></span>
+                    </button>
+                </div>
+            </section>
+        </section>
+
+        <section class="page-view" id="view-notas" role="tabpanel" aria-label="Notas e parcelas" hidden>
+            <section class="panel" id="invoice-table">
+                <div class="panel-title">Notas e parcelas</div>
+                <div class="panel-sub">A situação e os dias para vencer são calculados automaticamente. Registre o
+                    recebimento na linha da parcela.
+                </div>
+                <div class="toolbar">
+                    <div class="search">
+                        <input id="search" type="search" placeholder="Buscar cliente ou NF…"
+                               aria-label="Buscar cliente ou nota fiscal">
+                        <select id="filter" aria-label="Filtrar por situação">
+                            <option value="">Todas as situações</option>
+                            <option>PAGO</option>
+                            <option>VENCIDO</option>
+                            <option>A VENCER</option>
+                        </select>
+                    </div>
+                    <span class="muted" th:text="${invoiceCount} + ' notas'">0 notas</span>
+                </div>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                        <tr>
+                            <th>NF / referência</th>
+                            <th>Cliente</th>
+                            <th>Modelo</th>
+                            <th>Emissão</th>
+                            <th>Parcela</th>
+                            <th>Valor</th>
+                            <th>Vencimento</th>
+                            <th>Situação da parcela</th>
+                            <th>Recebimento</th>
+                            <th>Ações</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <th:block th:each="inv : ${invoices}">
+                            <tr th:each="inst : ${inv.installments}"
+                                th:attr="data-status=${inst.status},data-search=${#strings.toLowerCase(inv.number + ' ' + inv.customer)}">
+                                <td>
+                                    <div class="nf" th:text="${'NF ' + inv.number}">NF 123</div>
+                                    <div class="muted" th:text="${'Ref. ' + inv.referenceMonth}">Ref.</div>
+                                    <div class="muted" th:if="${instStat.first}"
+                                         th:text="${inv.paymentStatus + ' · ' + inv.paidInstallmentCount + ' de ' + #lists.size(inv.installments) + ' parcelas'}">Nota parcialmente paga · 1 de 2 parcelas</div>
+                                    <div class="muted" th:if="${instStat.first}"
+                                         th:text="${#numbers.formatCurrency(inv.paidTotal) + ' recebidos de ' + #numbers.formatCurrency(inv.total)}">R$ 1.050,00 recebidos de R$ 2.100,00</div>
+                                </td>
+                                <td>
+                                    <div th:text="${inv.customer}">Cliente</div>
+                                    <div class="muted" th:text="${inv.customerDocument}"></div>
+                                </td>
+                                <td th:text="${inv.model}">55</td>
+                                <td th:text="${inv.issueDate}">2026-01-01</td>
+                                <td th:text="${inst.installmentNumber}">1</td>
+                                <td class="money" th:text="${#numbers.formatCurrency(inst.amount)}">R$ 0,00</td>
+                                <td><span th:text="${inst.dueDate}">2026-01-01</span>
+                                    <div class="muted" th:if="${inst.status != 'PAGO'}"
+                                         th:text="${inst.daysToDue >= 0 ? inst.daysToDue + ' dias restantes' : 'há ' + (-inst.daysToDue) + ' dias'}"></div>
+                                </td>
+                                <td><span class="pill"
+                                          th:classappend="${inst.status == 'A VENCER' ? ' status-due' : ''}"
+                                          th:text="${inst.status}">A VENCER</span></td>
+                                <td>
+                                    <div th:if="${inst.status == 'PAGO'}"><span th:text="${inst.paidDate}"></span>
+                                        <div class="muted" th:text="${'Mês recebido: ' + inst.receivedMonth}"></div>
+                                    </div>
+                                    <form th:if="${inst.status != 'PAGO'}" class="inline-form" method="post"
+                                          th:action="@{'/installments/' + ${inst.id} + '/paid'}"><input type="number"
+                                                                                                        name="amount"
+                                                                                                        step="0.01"
+                                                                                                        min="0.01"
+                                                                                                        th:max="${inst.openAmount}"
+                                                                                                        th:value="${inst.openAmount}"
+                                                                                                        title="Valor recebido"><input
+                                            type="date" name="paidDate" title="Data recebida (vazio = hoje)">
+                                        <button type="submit">Registrar</button>
+                                    </form>
+                                </td>
+                                <td th:if="${instStat.first}" th:rowspan="${#lists.size(inv.installments)}">
+                                    <a class="btn secondary" th:href="@{'/invoices/' + ${inv.id} + '/edit'}">Editar</a>
+                                </td>
+                            </tr>
+                        </th:block>
+                        <tr th:if="${#lists.isEmpty(invoices)}">
+                            <td class="empty" colspan="10">Ainda não há notas. Cadastre uma manualmente ou importe um XML para começar.</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p class="hint">Para registrar pagamento parcial, informe o valor recebido. Esta versão mantém um valor
+                    acumulado por parcela.</p>
+            </section>
+        </section>
+
+        <section class="page-view" id="view-importacoes" role="tabpanel" aria-label="Importações" hidden>
+            <section class="panel">
+                <div class="panel-title">Cadastrar nota manualmente</div>
+                <div class="panel-sub">Preencha os dados do cliente, da nota e de cada parcela. Se ainda não recebeu, deixe os campos de recebimento em branco.</div>
+                <form method="post" th:action="@{/invoices/manual}">
+                    <div class="manual-grid">
+                        <label class="manual-field">Número da nota<input name="number" required maxlength="80" placeholder="Ex.: 123"></label>
+                        <label class="manual-field">Modelo<input name="model" required value="55" maxlength="20"></label>
+                        <label class="manual-field">Nome do cliente / empresa<input name="customer" required maxlength="255"></label>
+                        <label class="manual-field">CNPJ ou CPF do cliente<input name="customerDocument" required maxlength="30" inputmode="numeric" placeholder="Somente números ou formatado"></label>
+                        <label class="manual-field">Data de emissão<input name="issueDate" type="date" required></label>
+                    </div>
+                    <div class="panel-title">Parcelas</div>
+                    <div class="muted">Informe o valor e vencimento de cada parcela. O recebimento pode ser parcial ou ficar em branco.</div>
+                    <div class="installment-list" id="manual-installments">
+                        <div class="installment-editor">
+                            <label>Nº<input name="installmentNumbers" type="number" min="1" value="1" required></label>
+                            <label>Valor da parcela<input name="amounts" type="number" min="0.01" step="0.01" required></label>
+                            <label>Vencimento<input name="dueDates" type="date" required></label>
+                            <label>Já recebido<input name="paidAmounts" type="number" min="0" step="0.01" placeholder="0,00"></label>
+                            <label>Data recebida<input name="paidDates" type="date"></label>
+                            <button class="remove-installment" type="button" aria-label="Remover parcela" title="Remover parcela">Remover</button>
+                        </div>
+                    </div>
+                    <div class="manual-actions">
+                        <button class="btn secondary" type="button" id="add-installment">+ Adicionar parcela</button>
+                        <button class="btn btn-gold" type="submit">Salvar nota</button>
+                    </div>
+                </form>
+            </section>
+            <section class="panel">
+                <div class="panel-title">Importar notas fiscais</div>
+                <div class="panel-sub">Selecione XMLs de NF-e exportados do Emissor Sebrae ou obtidos da SEFAZ. Os dados
+                    serão extraídos automaticamente.
+                </div>
+                <form class="upload" method="post" th:action="@{/import}" enctype="multipart/form-data">
+                    <div><strong>Arraste ou selecione arquivos XML</strong>
+                        <div class="hint">Múltiplos arquivos · até 15 MB cada · notas repetidas são ignoradas</div>
+                        <input type="file" name="files" accept=".xml,text/xml,application/xml" multiple required></div>
+                    <button class="btn btn-gold" type="submit"><span class="btn-icon" aria-hidden="true"><svg
+                            viewBox="0 0 24 24"><path d="M12 15V4m0 0L8 8m4-4 4 4"/><path
+                            d="M5 14v5h14v-5"/></svg></span>Importar XML
+                    </button>
+                </form>
+                <div class="hint">O PDF não contém todos os dados de forma confiável; prefira o XML original. Notas sem
+                    parcelas no XML recebem um vencimento provisório de 30 dias e devem ser conferidas.
+                </div>
+            </section>
+        </section>
+
+        <section class="page-view" id="view-relatorios" role="tabpanel" aria-label="Relatórios" hidden>
+            <section class="panel">
+                <div class="panel-title">Relatórios financeiros</div>
+                <div class="panel-sub">Exporte os dados de notas e parcelas para conferir ou montar análises no Excel e
+                    no Power BI.
+                </div>
+                <div class="report-card">
+                    <div><strong>Relatório formatado para Excel</strong>
+                        <p>Inclui a logo e identificação da ESC, com filtros, valores e datas formatados.</p></div>
+                    <a class="btn btn-gold" href="/export.xlsx"><span class="btn-icon" aria-hidden="true"><svg
+                            viewBox="0 0 24 24"><path d="M12 4v11m0 0 4-4m-4 4-4-4"/><path
+                            d="M5 16v4h14v-4"/></svg></span>Baixar Excel</a>
+                </div>
+                <div class="report-card">
+                    <div><strong>Dados tabulares para Power BI (CSV)</strong>
+                        <p>Uma linha por parcela, com cliente, valor, vencimento, situação e mês recebido.</p></div>
+                    <a class="btn secondary" href="/export.csv"><span class="btn-icon" aria-hidden="true"><svg
+                            viewBox="0 0 24 24"><path d="M12 4v11m0 0 4-4m-4 4-4-4"/><path
+                            d="M5 16v4h14v-4"/></svg></span>Baixar CSV</a>
+                </div>
+                <div class="hint">A pasta de trabalho contém uma aba de apresentação e outra com uma tabela plana para
+                    conectar diretamente ao Power BI. Os arquivos refletem os registros existentes no sistema.
+                </div>
+            </section>
+        </section>
+    </main>
+</div>
+
+<script>
+    const titles = {
+      overview: ["Controle de recebimentos", "Notas, vencimentos e pagamentos em um só lugar."],
+      notas: ["Controle de recebimentos", "Notas, vencimentos e pagamentos em um só lugar."],
+      importacoes: ["Importações e cadastro manual", "Importe o XML ou cadastre a nota e as parcelas manualmente."],
+      relatorios: ["Relatórios", "Exporte os dados de recebíveis para análise financeira."]
+    };
+    const viewButtons = document.querySelectorAll("[data-view-target]");
+    const views = document.querySelectorAll(".page-view");
+
+    function openView(name) {
+      views.forEach(view => { view.hidden = view.id !== `view-${name}`; });
+      viewButtons.forEach(button => {
+        const selected = button.dataset.viewTarget === name;
+        if (button.matches("[role='tab']")) button.setAttribute("aria-selected", String(selected));
+      });
+      document.querySelector("#page-title").textContent = titles[name][0];
+      document.querySelector("#page-subtitle").textContent = titles[name][1];
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    viewButtons.forEach(button => button.addEventListener("click", () => openView(button.dataset.viewTarget)));
+    document.querySelectorAll("[data-scroll-target]").forEach(button => button.addEventListener("click", () => {
+      openView("notas");
+      requestAnimationFrame(() => document.getElementById(button.dataset.scrollTarget).scrollIntoView({ behavior: "smooth", block: "start" }));
+    }));
+
+    const search = document.querySelector("#search");
+    const filter = document.querySelector("#filter");
+    function applyFilters() {
+      const query = search.value.trim().toLowerCase();
+      const status = filter.value;
+      document.querySelectorAll("tbody tr[data-status]").forEach(row => {
+        row.hidden = !(row.dataset.search.includes(query) && (!status || row.dataset.status === status));
+      });
+    }
+    search.addEventListener("input", applyFilters);
+    filter.addEventListener("change", applyFilters);
+
+    const installmentList = document.querySelector("#manual-installments");
+    function updateInstallmentRows() {
+      const rows = [...installmentList.querySelectorAll(".installment-editor")];
+      rows.forEach((row, index) => {
+        const numberInput = row.querySelector('[name="installmentNumbers"]');
+        if (rows.length > 1 && !numberInput.dataset.touched) numberInput.value = index + 1;
+        row.querySelector(".remove-installment").disabled = rows.length === 1;
+      });
+    }
+    installmentList.addEventListener("input", event => {
+      if (event.target.name === "installmentNumbers") event.target.dataset.touched = "true";
+    });
+    installmentList.addEventListener("click", event => {
+      if (event.target.matches(".remove-installment") && installmentList.children.length > 1) {
+        event.target.closest(".installment-editor").remove();
+        updateInstallmentRows();
+      }
+    });
+    document.querySelector("#add-installment").addEventListener("click", () => {
+      const row = installmentList.firstElementChild.cloneNode(true);
+      row.querySelectorAll("input").forEach(input => {
+        input.value = "";
+        input.removeAttribute("data-touched");
+      });
+      row.querySelector('[name="installmentNumbers"]').value = installmentList.children.length + 1;
+      installmentList.appendChild(row);
+      updateInstallmentRows();
+    });
+    installmentList.addEventListener("change", event => {
+      if (event.target.name === "paidAmounts" && Number(event.target.value) > 0) {
+        const paidDate = event.target.closest(".installment-editor").querySelector('[name="paidDates"]');
+        if (!paidDate.value) paidDate.value = new Date().toISOString().slice(0, 10);
+      }
+    });
+    updateInstallmentRows();
+    const activeView = document.body.dataset.activeView;
+    if (titles[activeView]) openView(activeView);
+</script>
+</body>
+</html>

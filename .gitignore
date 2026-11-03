@@ -1,0 +1,12 @@
+# Bancos e arquivos temporários locais
+/data/
+/target/
+*.log
+
+# Segredos e configuração privada
+.env
+*.secrets.properties
+
+# Configuração local do IntelliJ e anexos usados durante a conversa
+/.idea/workspace.xml
+/.codex-remote-attachments/

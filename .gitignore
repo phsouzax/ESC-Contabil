@@ -10,3 +10,7 @@
 # Configuração local do IntelliJ e anexos usados durante a conversa
 /.idea/workspace.xml
 /.codex-remote-attachments/
+
+# Instalador (gerado)
+/installer/input/
+/installer/output/

@@ -1,0 +1,11 @@
+# Copie este arquivo para:  %APPDATA%\ESCContabil\esc.properties
+# (cole %APPDATA%\ESCContabil na barra do Explorer; crie a pasta se não existir)
+# NÃO coloque este arquivo no Git.
+
+# Senha do usuário esc_app criada com database/mysql/setup.sql
+spring.datasource.password=TROQUE_PELA_SENHA_DO_BANCO
+
+# Opcionais (já têm padrão):
+# spring.datasource.url=jdbc:mysql://127.0.0.1:3306/esc_contabil
+# spring.datasource.username=esc_app
+# app.open-browser=true

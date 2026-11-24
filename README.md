@@ -1,4 +1,4 @@
-# JSB Recebíveis (MVP)
+# ESC Contábil
 
 Aplicação Java/Spring Boot para importar XML de NF-e, controlar vencimentos e pagamentos, exportar Excel/CSV e apoiar a rotina de recebíveis da ESC.
 
